@@ -1,0 +1,746 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i4c | Property Development Feasibility</title>
+
+<style>
+:root {
+  --navy: #17324d;
+  --blue: #2563eb;
+  --green: #15803d;
+  --red: #b91c1c;
+  --border: #dce3eb;
+  --muted: #64748b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f5f8;
+  color: #172334;
+}
+
+header {
+  background: var(--navy);
+  color: white;
+  padding: 28px 5%;
+}
+
+header h1 {
+  margin: 12px 0 8px;
+  font-size: 27px;
+}
+
+header p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.brand {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+main {
+  max-width: 1400px;
+  margin: auto;
+  padding: 25px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 19px;
+  margin: 0 0 22px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+label {
+  font-size: 14px;
+  color: #475569;
+}
+
+input[type=number] {
+  width: 135px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  text-align: right;
+  font-size: 15px;
+  color: var(--navy);
+  font-weight: bold;
+}
+
+input[type=range] {
+  width: 100%;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.metric {
+  background: #f5f7fa;
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.metric span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.metric strong {
+  font-size: 25px;
+  color: var(--navy);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 12px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+th {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+td:first-child, th:first-child {
+  text-align: left;
+}
+
+.total {
+  font-weight: bold;
+  background: #f1f5f9;
+}
+
+.positive { color: var(--green) !important; }
+.negative { color: var(--red) !important; }
+
+.bar {
+  display: flex;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 5px;
+  margin: 8px 0 16px;
+  background: #e2e8f0;
+}
+
+.debt { background: #64748b; }
+.equity { background: #16a34a; }
+
+.legend {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--navy);
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #e9eef5;
+}
+
+.warning {
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 14px;
+  border-radius: 7px;
+  margin-top: 15px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media(max-width: 850px) {
+  .layout { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+  .panel { padding: 17px; }
+  .metric strong { font-size: 21px; }
+  header h1 { font-size: 22px; }
+  table { font-size: 12px; }
+}
+
+@media print {
+  input[type=range], button { display: none; }
+  body { background: white; }
+  .panel { break-inside: avoid; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">i4c</div>
+  <h1>Residential Property Development Feasibility</h1>
+  <p>Asset optimisation · Development feasibility · Portfolio performance</p>
+</header>
+
+<main>
+<div class="layout">
+
+<div>
+  <section class="panel">
+    <h2>01 — Existing property portfolio</h2>
+    <div id="portfolioInputs"></div>
+  </section>
+
+  <section class="panel">
+    <h2>02 — Proposed development</h2>
+    <div id="developmentInputs"></div>
+  </section>
+
+  <section class="panel">
+    <h2>03 — Finance assumptions</h2>
+    <div id="financeInputs"></div>
+
+    <button onclick="resetModel()">Reset assumptions</button>
+    <button onclick="window.print()">Print results</button>
+  </section>
+</div>
+
+<div>
+
+  <section class="panel">
+    <h2>Development performance</h2>
+
+    <div class="metrics">
+      <div class="metric">
+        <span>Additional equity created</span>
+        <strong id="equityCreated"></strong>
+      </div>
+
+      <div class="metric">
+        <span>Return on development cost</span>
+        <strong id="developmentReturn"></strong>
+      </div>
+
+      <div class="metric">
+        <span>Gross yield on development cost</span>
+        <strong id="grossYield"></strong>
+      </div>
+
+      <div class="metric">
+        <span>Additional annual cash flow</span>
+        <strong id="additionalCashflow"></strong>
+      </div>
+
+      <div class="metric">
+        <span>Additional annual rent</span>
+        <strong id="additionalRent"></strong>
+      </div>
+
+      <div class="metric">
+        <span>Net yield on development cost</span>
+        <strong id="netYield"></strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Borrowing capacity</h2>
+
+    <table>
+      <tbody id="borrowingTable"></tbody>
+    </table>
+
+    <div id="fundingWarning" class="warning"></div>
+
+    <p class="note">
+      Security-based borrowing capacity is indicative only.
+      Actual lending is subject to borrower serviceability,
+      valuation, lender criteria and approval.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Development feasibility</h2>
+
+    <table>
+      <tbody id="feasibilityTable"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Portfolio — before and after</h2>
+
+    <div>Before development</div>
+    <div class="bar">
+      <div class="debt" id="beforeDebt"></div>
+      <div class="equity" id="beforeEquity"></div>
+    </div>
+
+    <div>After development</div>
+    <div class="bar">
+      <div class="debt" id="afterDebt"></div>
+      <div class="equity" id="afterEquity"></div>
+    </div>
+
+    <div class="legend">
+      Grey = Debt &nbsp; | &nbsp; Green = Equity
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Portfolio</th>
+          <th>Before</th>
+          <th>After</th>
+        </tr>
+      </thead>
+      <tbody id="portfolioTable"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Annual cash flow</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Annual performance</th>
+          <th>Before</th>
+          <th>After</th>
+        </tr>
+      </thead>
+      <tbody id="cashflowTable"></tbody>
+    </table>
+
+    <p class="note">
+      Cash flow assumes interest-only lending and excludes
+      principal repayments and income tax.
+      Operating expenses are calculated as a percentage
+      of gross rental income.
+    </p>
+  </section>
+
+</div>
+</div>
+
+<p class="note">
+  Preliminary feasibility assessment only. All amounts are NZD.
+  Development costs should include construction, subdivision,
+  professional fees, consenting, infrastructure, finance costs,
+  contingencies and applicable GST. This calculator does not
+  constitute a valuation or lending approval.
+</p>
+
+</main>
+
+<script>
+
+const fields = [
+  {
+    group: "portfolioInputs",
+    id: "houses",
+    label: "Number of existing properties",
+    min: 1, max: 20, step: 1, value: 4
+  },
+  {
+    group: "portfolioInputs",
+    id: "portfolioValue",
+    label: "Total portfolio value ($)",
+    min: 500000, max: 10000000,
+    step: 50000, value: 3200000
+  },
+  {
+    group: "portfolioInputs",
+    id: "existingDebt",
+    label: "Outstanding mortgages ($)",
+    min: 0, max: 8000000,
+    step: 25000, value: 1200000
+  },
+  {
+    group: "portfolioInputs",
+    id: "existingRent",
+    label: "Total existing weekly rent ($)",
+    min: 0, max: 10000,
+    step: 50, value: 2400
+  },
+  {
+    group: "developmentInputs",
+    id: "originalValue",
+    label: "Original property value ($)",
+    min: 300000, max: 2000000,
+    step: 25000, value: 800000
+  },
+  {
+    group: "developmentInputs",
+    id: "cost",
+    label: "Total development cost ($)",
+    min: 200000, max: 1500000,
+    step: 10000, value: 550000
+  },
+  {
+    group: "developmentInputs",
+    id: "newValue",
+    label: "New house valuation ($)",
+    min: 300000, max: 2000000,
+    step: 10000, value: 820000
+  },
+  {
+    group: "developmentInputs",
+    id: "valueLoss",
+    label: "Value lost by existing house ($)",
+    min: 0, max: 500000,
+    step: 10000, value: 100000
+  },
+  {
+    group: "developmentInputs",
+    id: "newRent",
+    label: "New house weekly rent ($)",
+    min: 300, max: 1500,
+    step: 25, value: 675
+  },
+  {
+    group: "developmentInputs",
+    id: "rentLoss",
+    label: "Weekly rent lost on existing house ($)",
+    min: 0, max: 500,
+    step: 10, value: 0
+  },
+  {
+    group: "financeInputs",
+    id: "interest",
+    label: "Interest rate (%)",
+    min: 2, max: 12,
+    step: 0.25, value: 5.25
+  },
+  {
+    group: "financeInputs",
+    id: "expenses",
+    label: "Operating expenses (%)",
+    min: 0, max: 40,
+    step: 1, value: 20
+  },
+  {
+    group: "financeInputs",
+    id: "maxLVR",
+    label: "Assumed maximum portfolio LVR (%)",
+    min: 40, max: 80,
+    step: 5, value: 70
+  },
+  {
+    group: "financeInputs",
+    id: "newDebt",
+    label: "Development funded by debt (%)",
+    min: 0, max: 100,
+    step: 5, value: 100
+  }
+];
+
+function buildInputs() {
+  fields.forEach(f => {
+    const container = document.getElementById(f.group);
+    const div = document.createElement("div");
+    div.className = "field";
+
+    div.innerHTML = `
+      <div class="field-header">
+        <label for="${f.id}">${f.label}</label>
+        <input type="number"
+          id="${f.id}"
+          min="${f.min}"
+          max="${f.max}"
+          step="${f.step}"
+          value="${f.value}">
+      </div>
+      <input type="range"
+        aria-label="${f.label}"
+        id="${f.id}Slider"
+        min="${f.min}"
+        max="${f.max}"
+        step="${f.step}"
+        value="${f.value}">
+    `;
+
+    container.appendChild(div);
+
+    const number = document.getElementById(f.id);
+    const slider = document.getElementById(f.id + "Slider");
+
+    slider.addEventListener("input", () => {
+      number.value = slider.value;
+      calculate();
+    });
+
+    number.addEventListener("input", () => {
+      slider.value = number.value;
+      calculate();
+    });
+
+    number.addEventListener("change", () => {
+      number.value = Math.max(
+        f.min,
+        Math.min(f.max, Number(number.value) || 0)
+      );
+      slider.value = number.value;
+      calculate();
+    });
+  });
+}
+
+const money = n => Number.isFinite(n)
+  ? new Intl.NumberFormat("en-NZ", {
+      style: "currency",
+      currency: "NZD",
+      maximumFractionDigits: 0
+    }).format(n)
+  : "N/A";
+
+const pct = n => Number.isFinite(n)
+  ? n.toFixed(1) + "%"
+  : "N/A";
+
+const ratio = n => Number.isFinite(n)
+  ? n.toFixed(2) + "x"
+  : "N/A";
+
+const get = id => Number(document.getElementById(id).value) || 0;
+
+function output(id, value, numeric) {
+  const element = document.getElementById(id);
+  element.textContent = value;
+  element.classList.toggle(
+    "positive",
+    numeric !== undefined && numeric > 0
+  );
+  element.classList.toggle(
+    "negative",
+    numeric !== undefined && numeric < 0
+  );
+}
+
+function row(label, ...values) {
+  return `<tr><td>${label}</td>${
+    values.map(v => `<td>${v}</td>`).join("")
+  }</tr>`;
+}
+
+function total(label, ...values) {
+  return `<tr class="total"><td>${label}</td>${
+    values.map(v => `<td>${v}</td>`).join("")
+  }</tr>`;
+}
+
+function setBar(debtId, equityId, debt, assets) {
+  const debtPercent = assets > 0
+    ? Math.max(0, Math.min(100, debt / assets * 100))
+    : 100;
+
+  document.getElementById(debtId).style.width =
+    debtPercent + "%";
+
+  document.getElementById(equityId).style.width =
+    (100 - debtPercent) + "%";
+}
+
+function calculate() {
+
+  const houses = get("houses");
+  const assets = get("portfolioValue");
+  const debt = get("existingDebt");
+  const existingRent = get("existingRent") * 52;
+
+  const originalValue = get("originalValue");
+  const cost = get("cost");
+  const newValue = get("newValue");
+  const valueLoss = get("valueLoss");
+
+  const addedRent = (get("newRent") - get("rentLoss")) * 52;
+
+  const rate = get("interest") / 100;
+  const expenseRate = get("expenses") / 100;
+  const maxLVR = get("maxLVR") / 100;
+  const debtFunding = get("newDebt") / 100;
+
+  const equity = assets - debt;
+  const currentLVR = debt / assets * 100;
+
+  const retainedValue = originalValue - valueLoss;
+  const combinedValue = retainedValue + newValue;
+  const valueCreated = newValue - valueLoss - cost;
+
+  const additionalDebt = cost * debtFunding;
+  const cashContribution = cost - additionalDebt;
+
+  const futureAssets = assets + newValue - valueLoss;
+  const futureDebt = debt + additionalDebt;
+  const futureEquity = futureAssets - futureDebt;
+  const futureLVR = futureDebt / futureAssets * 100;
+
+  const lendingCapacity = Math.max(
+    0, assets * maxLVR - debt
+  );
+
+  const futureCapacity = Math.max(
+    0, futureAssets * maxLVR - futureDebt
+  );
+
+  const futureRent = existingRent + addedRent;
+
+  const existingOpex = existingRent * expenseRate;
+  const futureOpex = futureRent * expenseRate;
+
+  const existingNOI = existingRent - existingOpex;
+  const futureNOI = futureRent - futureOpex;
+
+  const existingInterest = debt * rate;
+  const futureInterest = futureDebt * rate;
+
+  const existingCashflow = existingNOI - existingInterest;
+  const futureCashflow = futureNOI - futureInterest;
+  const additionalCashflow = futureCashflow - existingCashflow;
+
+  output("equityCreated", money(valueCreated), valueCreated);
+  output("developmentReturn", pct(valueCreated / cost * 100), valueCreated);
+  output("grossYield", pct(addedRent / cost * 100));
+  output("netYield", pct(addedRent * (1 - expenseRate) / cost * 100));
+  output("additionalCashflow", money(additionalCashflow), additionalCashflow);
+  output("additionalRent", money(addedRent));
+
+  document.getElementById("borrowingTable").innerHTML =
+    row("Existing portfolio equity", money(equity)) +
+    row("Existing portfolio LVR", pct(currentLVR)) +
+    row("Assumed maximum LVR", pct(maxLVR * 100)) +
+    row("Maximum debt against existing assets", money(assets * maxLVR)) +
+    total("Indicative available borrowing", money(lendingCapacity)) +
+    row("New borrowing required", money(additionalDebt)) +
+    row("Cash contribution required", money(cashContribution)) +
+    row("Remaining borrowing headroom after development", money(futureCapacity));
+
+  const warnings = [];
+
+  if (additionalDebt > lendingCapacity) {
+    warnings.push(
+      "Required borrowing exceeds indicative capacity against existing assets. " +
+      "Completed-value lending or additional security may be required."
+    );
+  }
+
+  if (futureLVR > maxLVR * 100) {
+    warnings.push("Completed portfolio LVR exceeds the assumed lending limit.");
+  }
+
+  if (additionalCashflow < 0) {
+    warnings.push("The proposed development reduces annual cash flow.");
+  }
+
+  if (valueCreated < 0) {
+    warnings.push("Development costs exceed the incremental property value created.");
+  }
+
+  if (originalValue > assets || valueLoss > originalValue ||
+      get("rentLoss") * 52 > existingRent) {
+    warnings.push("Check inputs: property values or rental losses are inconsistent.");
+  }
+
+  document.getElementById("fundingWarning").textContent =
+    warnings.length ? warnings.join(" ") :
+    "Within assumed security limits. Serviceability and lender approval still require assessment.";
+
+  document.getElementById("feasibilityTable").innerHTML =
+    row("Original property value", money(originalValue)) +
+    row("Retained house valuation", money(retainedValue)) +
+    row("New house valuation", money(newValue)) +
+    total("Combined completed value", money(combinedValue)) +
+    row("Less original property value", money(-originalValue)) +
+    row("Less development expenditure", money(-cost)) +
+    total("Net development value created", money(valueCreated)) +
+    row("Return on development cost", pct(valueCreated / cost * 100));
+
+  document.getElementById("portfolioTable").innerHTML =
+    row("Number of properties", houses, houses + 1) +
+    row("Asset value", money(assets), money(futureAssets)) +
+    row("Total debt", money(debt), money(futureDebt)) +
+    total("Portfolio equity", money(equity), money(futureEquity)) +
+    row("Portfolio LVR", pct(currentLVR), pct(futureLVR)) +
+    row("Gross portfolio yield",
+      pct(existingRent / assets * 100),
+      pct(futureRent / futureAssets * 100));
+
+  document.getElementById("cashflowTable").innerHTML =
+    row("Gross rental income", money(existingRent), money(futureRent)) +
+    row("Operating expenses", money(-existingOpex), money(-futureOpex)) +
+    total("Net operating income", money(existingNOI), money(futureNOI)) +
+    row("Interest expenditure", money(-existingInterest), money(-futureInterest)) +
+    total("Net cash flow", money(existingCashflow), money(futureCashflow)) +
+    row("Interest coverage ratio",
+      ratio(existingNOI / existingInterest),
+      ratio(futureNOI / futureInterest));
+
+  setBar("beforeDebt", "beforeEquity", debt, assets);
+  setBar("afterDebt", "afterEquity", futureDebt, futureAssets);
+}
+
+function resetModel() {
+  fields.forEach(f => {
+    document.getElementById(f.id).value = f.value;
+    document.getElementById(f.id + "Slider").value = f.value;
+  });
+  calculate();
+}
+
+buildInputs();
+calculate();
+
+</script>
+</body>
+</html>
